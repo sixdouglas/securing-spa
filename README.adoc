@@ -1,30 +1,80 @@
-= Quarkus, Svelte and Auth0 OAuth2 tryout project
+= Quarkus, Svelte et Auth0 OAuth2 projet example
 
-This is the base project used to write a blog article on HowTo secure a Single Page Application written in Svelte JS, 
-plugged to a Quarkus Microservice Backend using the OAuth2 provider https://auth0.com/[`auth0`].
+Ce projet sert de base à l'écriture d'un article de blog sur la sécurisation OAuth2 d'une application de type Single Page Application écrite en Svelte JS, et utilisant des APIs écritent en utilisant le Framework Quarkus. L'authentification et les autorisations seront fournies par le site https://auth0.com/[`auth0`].
 
-== Get started
+== But de l'application
 
-=== cart-service project
+Cette application qui permet d'afficher une liste de produits et de les ajouter / supprimer dans un panier.
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+Nous allons donc avoir besoin de :
 
-==== Running the application in dev mode
+* Sur l'écran principal
+** Sur la gauche de l'écran, la liste des produits
+*** un bouton `Add to cart` permet d'ajouter le produit dans le panier
+** Sur la droite de l'écran, la liste des produits dans le panier
+*** un bouton `Remove from cart` permet de supprimer le produit du panier
 
-You can run your application in dev mode that enables live coding using:
+Cette application est découpée ainsi :
+
+* Un backend en Quarkus (<<projet cart-service>>) :
+** une API fournissant la liste des Articles du Catalogue
+** une API fournissant la liste des Articles du Panier
+** une API permettant d'ajouter un Article au Panier
+** une API permettant de supprimer un Article du Panier
+** une base de données H2 alimentée au démarrage du serveur par quelques produits
+
+* Une Single Page App, en Svelte JS (<<projet cart-front>>) :
+** Pour l'affichage des Produits :
+*** un composant `Product`
+*** un composant `Catalog` affichant la liste des `Product`
+** Pour l'affichage du Panier :
+*** un composant `CartLine`
+*** un composant `Cart` affichant la liste des `CartLine`
+** Un Store pour stocker les données renvoyées par les APIs.
+
+Côté back, voilà comment les objets sont définis :
+
+[plantuml, backend, svg]
+----
+object Product {
+    Integer id
+    String name
+}
+object Cart {
+    Integer id
+    String userEmail
+    List<CartLine> lines
+}
+object CartLine {
+    Integer id
+    Product product
+}
+
+Cart *-- CartLine
+CartLine *-- Product
+
+----
+
+=== projet cart-service
+
+Ce projet utilises https://quarkus.io/[Quarkus], le Framework Java Supersonique Subatomique.
+
+==== Démarrer l'application en mode __dev__
+
+Vous pouvez démarrer l'application en mode __dev__ pour activer rechargement automatique du code en utilisant :
 
 [shell]
 ----
 ./mvnw compile quarkus:dev
 ----
 
-=== cart-front project
+=== projet cart-front
 
-This project uses Svelte, the Javascript Framework.
+Ce projet utilise https://svelte.dev/[Svelte], le Framework Javascript.
 
-==== Running the application in dev mode
+==== Démarrer l'application en mode __dev__
 
-Install the dependencies, then run the APP...
+Installer les dependencies, puis démarrer l'Application :
 
 [shell]
 ----
@@ -33,4 +83,4 @@ npm install
 npm run dev
 ----
 
-Navigate to http://localhost:5000[localhost:5000]. You should see your app running. 
+Aller à la page http://localhost:5000[localhost:5000]. Vous devriez voir l'application démarrée.
