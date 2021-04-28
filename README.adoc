@@ -1,0 +1,86 @@
+= Quarkus, Svelte et Auth0 OAuth2 projet example
+
+Ce projet sert de base à l'écriture d'un article de blog sur la sécurisation OAuth2 d'une application de type Single Page Application écrite en Svelte JS, et utilisant des APIs écritent en utilisant le Framework Quarkus. L'authentification et les autorisations seront fournies par le site https://auth0.com/[`auth0`].
+
+== But de l'application
+
+Cette application qui permet d'afficher une liste de produits et de les ajouter / supprimer dans un panier.
+
+Nous allons donc avoir besoin de :
+
+* Sur l'écran principal
+** Sur la gauche de l'écran, la liste des produits
+*** un bouton `Add to cart` permet d'ajouter le produit dans le panier
+** Sur la droite de l'écran, la liste des produits dans le panier
+*** un bouton `Remove from cart` permet de supprimer le produit du panier
+
+Cette application est découpée ainsi :
+
+* Un backend en Quarkus (<<projet cart-service>>) :
+** une API fournissant la liste des Articles du Catalogue
+** une API fournissant la liste des Articles du Panier
+** une API permettant d'ajouter un Article au Panier
+** une API permettant de supprimer un Article du Panier
+** une base de données H2 alimentée au démarrage du serveur par quelques produits
+
+* Une Single Page App, en Svelte JS (<<projet cart-front>>) :
+** Pour l'affichage des Produits :
+*** un composant `Product`
+*** un composant `Catalog` affichant la liste des `Product`
+** Pour l'affichage du Panier :
+*** un composant `CartLine`
+*** un composant `Cart` affichant la liste des `CartLine`
+** Un Store pour stocker les données renvoyées par les APIs.
+
+Côté back, voilà comment les objets sont définis :
+
+[plantuml, backend, svg]
+----
+object Product {
+    Integer id
+    String name
+}
+object Cart {
+    Integer id
+    String userEmail
+    List<CartLine> lines
+}
+object CartLine {
+    Integer id
+    Product product
+}
+
+Cart *-- CartLine
+CartLine *-- Product
+
+----
+
+=== projet cart-service
+
+Ce projet utilises https://quarkus.io/[Quarkus], le Framework Java Supersonique Subatomique.
+
+==== Démarrer l'application en mode __dev__
+
+Vous pouvez démarrer l'application en mode __dev__ pour activer rechargement automatique du code en utilisant :
+
+[shell]
+----
+./mvnw compile quarkus:dev
+----
+
+=== projet cart-front
+
+Ce projet utilise https://svelte.dev/[Svelte], le Framework Javascript.
+
+==== Démarrer l'application en mode __dev__
+
+Installer les dependencies, puis démarrer l'Application :
+
+[shell]
+----
+cd cart-front
+npm install
+npm run dev
+----
+
+Aller à la page http://localhost:5000[localhost:5000]. Vous devriez voir l'application démarrée.
