@@ -1,0 +1,36 @@
+= Quarkus, Svelte and Auth0 OAuth2 tryout project
+
+This is the base project used to write a blog article on HowTo secure a Single Page Application written in Svelte JS, 
+plugged to a Quarkus Microservice Backend using the OAuth2 provider https://auth0.com/[`auth0`].
+
+== Get started
+
+=== cart-service project
+
+This project uses Quarkus, the Supersonic Subatomic Java Framework.
+
+==== Running the application in dev mode
+
+You can run your application in dev mode that enables live coding using:
+
+[shell]
+----
+./mvnw compile quarkus:dev
+----
+
+=== cart-front project
+
+This project uses Svelte, the Javascript Framework.
+
+==== Running the application in dev mode
+
+Install the dependencies, then run the APP...
+
+[shell]
+----
+cd cart-front
+npm install
+npm run dev
+----
+
+Navigate to http://localhost:5000[localhost:5000]. You should see your app running. 
