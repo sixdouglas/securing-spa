@@ -1,9 +1,13 @@
 package org.sixdouglas.quarkus.cart;
 
+import io.smallrye.common.constraint.Assert;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.sixdouglas.quarkus.catalog.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -18,22 +22,29 @@ import javax.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CartResource {
+
+    @Inject
+    JsonWebToken jwt;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CartResource.class);
-    public static final String USER_ID = "douglas.six@zenika.com";
 
     @Transactional
     @GET
+    @RolesAllowed("read:cart")
     public Cart getUserCart() {
-        return Cart.findByUserId(USER_ID)
+        return Cart.findByUserId(jwt.getSubject())
                 .orElseGet(this::createNewAndSaveCart);
     }
 
     @Transactional
     @PUT
     @Path("/{cartId}")
+    @RolesAllowed("add:cart")
     public Cart addProductToUserCart(@PathParam("cartId") Long cartId, Product product) {
         Cart userCart = Cart.<Cart>findByIdOptional(cartId)
                 .orElseGet(this::createNewAndSaveCart);
+
+        Assert.assertTrue(userCart.userId.equals(jwt.getSubject()));
 
         Product.<Product>findByIdOptional(product.id)
                 .ifPresent(foundProduct -> addProductAndSaveCart(foundProduct, userCart));
@@ -44,9 +55,12 @@ public class CartResource {
     @Transactional
     @DELETE
     @Path("/{cartId}/lines/{lineId}")
+    @RolesAllowed("delete:cart")
     public Cart removeProductFromUserCart(@PathParam("cartId") Long cartId, @PathParam("lineId") Long lineId) {
         Cart userCart = Cart.<Cart>findByIdOptional(cartId)
                 .orElseGet(this::createNewAndSaveCart);
+
+        Assert.assertTrue(userCart.userId.equals(jwt.getSubject()));
 
         userCart.cartLines.stream()
                 .filter(cartLine -> cartLine.id.equals(lineId))
@@ -59,7 +73,7 @@ public class CartResource {
     private Cart createNewAndSaveCart() {
         LOGGER.info("Get New Cart");
         final Cart cart = new Cart();
-        cart.userId = USER_ID;
+        cart.userId = jwt.getSubject();
         cart.persist();
         return cart;
     }
