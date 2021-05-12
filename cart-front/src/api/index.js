@@ -1,5 +1,6 @@
 // Api.js
 import axios from "axios";
+import {isAuthenticated, auth0Client} from "../store";
 
 // Create a instance of axios to use the same base url.
 const axiosAPI = axios.create({
@@ -23,8 +24,22 @@ function callApi(method, url, request, headers) {
 function apiRequest(method, url, request) {
     console.info("call API: '" + url + "' in '" + method + "', with params: {" + request + "}");
     let headers = {};
-    //using the axios instance to perform the request that received from each http method
-    return callApi(method, url, request, headers);
+    let isAuthent;
+    isAuthenticated.subscribe(value => isAuthent = value);
+    let auth0Cli;
+    auth0Client.subscribe(value => auth0Cli = value);
+    if (isAuthent) {
+        return auth0Cli.getTokenSilently()
+            .then( token => {
+                headers = {
+                    authorization: "Bearer " + token
+                }
+                return callApi(method, url, request, headers);
+            });
+    } else {
+        //using the axios instance to perform the request that received from each http method
+        return callApi(method, url, request, headers);
+    }
 }
 
 // function to execute the http get request

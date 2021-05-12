@@ -1,6 +1,33 @@
 <script>
 	import Catalog from "./catalog/Catalog.svelte";
 	import Cart from "./cart/Cart.svelte"
+
+	import { onMount } from "svelte";
+	import auth from "./security/authService";
+	import { isAuthenticated, user, auth0Client } from "./store";
+
+	let auth0ClientPromise = auth.createClient();
+	let auth0Cli;
+
+	onMount(async () => {
+		auth0ClientPromise
+				.then(auth0ClientValue => {
+					auth0Cli = auth0ClientValue;
+					$auth0Client = auth0ClientValue;
+					$auth0Client.isAuthenticated()
+							.then(isAuthenticatedValue => isAuthenticated.set(isAuthenticatedValue));
+					$auth0Client.getUser()
+							.then(userValue => user.set(userValue));
+				});
+	});
+
+	function login() {
+		auth.loginWithPopup(auth0Cli);
+	}
+
+	function logout() {
+		auth.logout(auth0Cli);
+	}
 </script>
 
 <main>
@@ -19,8 +46,26 @@
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse" id="navbarText">
-			<div class="navbar-nav mr-auto user-details"></div>
-			<div class="navbar-text"></div>
+			<div class="navbar-nav mr-auto user-details">
+				{#if $isAuthenticated}
+					<span class="text-white">&nbsp;&nbsp;{$user.name} ({$user.email})</span>
+				{:else}
+					<span>&nbsp;</span>
+				{/if}
+			</div>
+			<div class="navbar-text">
+				<ul class="navbar-nav float-right">
+					{#if $isAuthenticated}
+						<li class="nav-item">
+							<a class="nav-link" href="/#" on:click="{logout}">Log Out</a>
+						</li>
+					{:else}
+						<li class="nav-item">
+							<a class="nav-link" href="/#" on:click="{login}">Log In</a>
+						</li>
+					{/if}
+				</ul>
+			</div>
 		</div>
 	</nav>
 
@@ -29,9 +74,11 @@
 			<div class="col">
 				<Catalog />
 			</div>
+			{#if $isAuthenticated}
 			<div class="col-3 border-left">
 				<Cart />
 			</div>
+			{/if}
 		</div>
 	</div>
 </main>
